@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.log
+concept.png
+desktop.png
+mobile.png
+server-detail.png
+server-detail-mobile.png
