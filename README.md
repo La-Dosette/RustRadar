@@ -1,5 +1,7 @@
 # RustRadar
 
+[Ouvrir RustRadar](https://la-dosette.github.io/RustRadar/)
+
 Recherche de serveurs Rust autour du wipe, sur les vraies données Wipe Board : ce qui vient de wipe, ce qui va wiper, filtres serveur, recherche parmi les résultats, favoris locaux et copie de la commande de connexion F1. Interface entièrement en anglais.
 
 La barre de recherche interroge l'annuaire complet de Wipe Board à partir de deux caractères et affiche jusqu'à 25 correspondances, indépendamment des 100 serveurs du feed courant. Cliquer sur le nom d'un serveur ouvre sa fiche RustRadar : population, file d'attente, taille de carte, rang, région, équipe, type, taux de récolte, adresse, dernier wipe, calendrier futur, source du planning, site/Discord et historique des wipes observés quand la page publique Wipe Board le fournit.
