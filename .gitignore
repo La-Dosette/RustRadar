@@ -6,3 +6,7 @@ desktop.png
 mobile.png
 server-detail.png
 server-detail-mobile.png
+.env
+.env.local
+.env.*.local
+!.env.example

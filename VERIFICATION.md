@@ -57,3 +57,23 @@ Limites : dépendance à une seule API externe, 100 résultats maximum par feed,
 Ajout vérifié le 6 septembre 2026 : recherche globale `Rustafied` donnant 40 correspondances et affichant les 25 premières ; ouverture de `Rustafied.com - EU Friday` ; rafraîchissement de la fiche par identifiant ; population 304/425, carte 4500, rang #40, adresse, planning hebdomadaire, cinq wipes futurs et trois wipes observés. Le proxy refuse les recherches de moins de deux caractères et valide les identifiants. En mode statique, l'appel direct à l'API reste disponible.
 
 Captures : `server-detail.png` et `server-detail-mobile.png`. Contrôle dans le navigateur intégré aux formats ordinateur et 390 × 844 ; largeur du document mobile 380 px pour une fenêtre de 390 px, donc aucun débordement horizontal. La fiche réutilise la palette, les filets, la typographie condensée, les boutons et les rayons du Control Center existant. Le contenu principal, la navigation et les filtres restent inchangés ; les noms de serveurs sont désormais des boutons ouvrant la fiche. Compilation Vite et validation syntaxique Node réussies.
+
+## Annuaire complet, pagination et filtres détaillés — 7 septembre 2026
+
+RustRadar charge maintenant l'annuaire complet `/api/servers`, soit 11 829 serveurs au moment du contrôle, et rend 50 lignes par page. La recherche globale `rust` a trouvé 477 correspondances réparties sur 10 pages ; le passage de la page 1 à la page 2 conserve la recherche et affiche bien une autre tranche de résultats.
+
+Les filtres ont été étendus au pays, à la fiabilité du planning, à la taille de carte et au type de wipe à venir. Test combiné dans Upcoming avec `Owner-declared` et `Full wipe` : 4 résultats, tous marqués `OWNER-DECLARED` et `FULL`. La note sous le compteur est calculée sur les résultats locaux et indique 4 calendriers déclarés par le propriétaire sur 4.
+
+La fiche serveur enrichie a été contrôlée sur WarBandits : population 838/800, occupation 105 %, file de 37, rang #5, carte 4250, seed, région, pays, équipe, type, taux, cycle, source du planning, description, lien de connexion Steam, calendrier futur et historique observé en quatre colonnes.
+
+Contrôle responsive à 390 × 844 : filtres empilés, fenêtres de wipe sur cinq colonnes, recherche, tri, cartes serveur et actions de copie lisibles sans débordement visible. Console navigateur sans avertissement ni erreur. `npm run build`, `node --check server.mjs` et `git diff --check` réussis après les changements.
+
+## Comptes Discord et alertes — 7 septembre 2026
+
+Ajout local de Supabase Auth avec connexion Discord, fusion des favoris locaux et distants, synchronisation des ajouts et suppressions, panneau de règles d'alerte et workflow GitHub Pages alimenté par variables de dépôt. Sans configuration Supabase, tous les contrôles sont masqués et le comportement local reste disponible.
+
+Le schéma SQL active RLS sur toutes les tables. Le navigateur peut gérer uniquement les favoris, destinations visibles et abonnements de son utilisateur. Les jetons Discord, états OAuth et livraisons restent privés et sont accessibles uniquement aux fonctions avec le rôle de service.
+
+La destination Discord utilise OAuth `webhook.incoming` : Discord fait choisir le salon à son administrateur et rend un webhook dédié. La fonction `discord-connect` valide l'utilisateur et un état OAuth à durée courte avant d'enregistrer le secret. La fonction `check-wipes`, appelée toutes les cinq minutes, applique les critères aux données Wipe Board, limite chaque lot à cinq messages et déduplique les notifications par règle, serveur et date de wipe.
+
+Vérifications locales : compilation Vite réussie avec 68 modules, parsing des deux Edge Functions avec esbuild, CLI Supabase 2.116.0 installée et projet local initialisé. Le navigateur affiche le bouton `Connect Discord` quand les variables sont présentes, charge toujours l'annuaire réel (11 966 serveurs lors du contrôle) et ne remonte aucune erreur console. L'authentification, la base distante et l'envoi Discord réel restent à tester après création des projets et ajout des secrets.

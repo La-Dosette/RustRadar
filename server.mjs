@@ -4,6 +4,7 @@ import { resolve, extname } from 'node:path';
 const production=process.argv.includes('--production');
 const vite=production?null:await (await import('vite')).createServer({server:{middlewareMode:true},appType:'spa'});
 const feeds={wiped:'https://wipeboard.net/api/v1/just-wiped',upcoming:'https://wipeboard.net/api/v1/wipes'};
+const directoryUrl='https://wipeboard.net/api/servers';
 const cache=new Map();
 const pending=new Map();
 async function getData(url){
@@ -41,9 +42,12 @@ const sendJson=(res,body)=>{res.writeHead(200,{'Content-Type':'application/json;
 const sendFail=(res)=>{res.writeHead(502,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'Wipe Board is unavailable. Try again in a moment.'}));};
 http.createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost');
+ if(url.pathname==='/api/directory'){
+  try{const data=await getData(directoryUrl);if(!Array.isArray(data.data))throw Error('Invalid source');sendJson(res,data);}catch{sendFail(res);}return;
+ }
  if(url.pathname==='/api/servers'){
   const feed=feeds[url.searchParams.get('feed')]||feeds.wiped;
-  const q=new URLSearchParams({limit:'100'});for(const k of ['hours','region','team','type','cycle','min_players','sort']){const v=url.searchParams.get(k);if(v&&v.length<30)q.set(k,v);}
+  const q=new URLSearchParams({limit:'100'});for(const k of ['hours','region','country','team','type','rate','cycle','min_players','sort']){const v=url.searchParams.get(k);if(v&&v.length<30)q.set(k,v);}
  try{const data=await getData(feed+'?'+q);if(!Array.isArray(data.servers||data.wipes))throw Error('Invalid source');sendJson(res,data);}catch{sendFail(res);}return;
  }
  if(url.pathname==='/api/search'){
