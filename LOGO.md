@@ -1,1 +1,1 @@
-Logo fourni et autorisé par utilisateur : public/rustradar-logo.png. À intégrer au thème RustRadar (en-tête et favicon). Conserver le style rouge-orange usé sur fond noir. Image originale conservée sans modification.
+The supplied RustRadar logo is in `public/rustradar-logo.png`. It is used in the site header and favicon.

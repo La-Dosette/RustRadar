@@ -1,31 +1,29 @@
-# Activer les comptes et alertes Discord de RustRadar
+# Set up Discord accounts and wipe alerts
 
-Le code est prêt. Cette procédure crée les services externes et branche la version GitHub Pages. Ne place jamais le Client Secret Discord, la Service Role Key Supabase, un jeton de webhook ou `CRON_SECRET` dans GitHub ou dans un fichier `VITE_*` : les variables Vite sont publiques dans le navigateur.
+Discord sign-in, synced favorites, and channel alerts require a Supabase project and a Discord application. Keep the Discord client secret, Supabase service role key, webhook tokens, and `CRON_SECRET` on the server. Vite exposes `VITE_*` values to the browser.
 
-## 1. Créer les deux projets
+## Create the projects
 
-1. Crée un projet sur https://supabase.com/dashboard et note son **Project ref**, son **Project URL** et sa **Publishable key**.
-2. Crée une application **RustRadar** sur https://discord.com/developers/applications.
-3. Dans Discord, ouvre **OAuth2**, puis ajoute exactement ces deux redirections en remplaçant `<project-ref>` :
+1. Create a [Supabase project](https://supabase.com/dashboard) and note its project reference, project URL, and publishable key.
+2. Create a [Discord application](https://discord.com/developers/applications).
+3. In **OAuth2**, add the following redirect URLs. Replace `<project-ref>` with your Supabase project reference.
    - `https://<project-ref>.supabase.co/auth/v1/callback`
    - `https://<project-ref>.supabase.co/functions/v1/discord-connect`
-4. Copie le **Client ID**. Génère aussi un **Client Secret**, mais garde-le privé.
+4. Copy the Discord client ID and generate a client secret.
 
-RustRadar utilise l'autorisation Discord `webhook.incoming` pour les messages. Il n'est pas nécessaire d'activer un bot connecté en permanence ni de lui donner accès à tous les salons.
+RustRadar uses Discord's `webhook.incoming` permission. A channel administrator selects the destination when connecting Discord.
 
-## 2. Configurer Supabase Auth
+## Configure Supabase Auth
 
-1. Dans Supabase, ouvre **Authentication → Providers → Discord**.
-2. Active Discord et renseigne le Client ID et le Client Secret.
-3. Dans **Authentication → URL Configuration** :
-   - Site URL : `https://la-dosette.github.io/RustRadar/`
-   - Redirect URLs : `https://la-dosette.github.io/RustRadar/**` et `http://localhost:5173/**`
+1. Open **Authentication → Providers → Discord** and enable Discord with the client ID and client secret.
+2. In **Authentication → URL Configuration**, set **Site URL** to `https://la-dosette.github.io/RustRadar/` for the original deployment, or use your deployment URL.
+3. Allow redirects to `https://la-dosette.github.io/RustRadar/**` (or your deployment path) and `http://localhost:5173/**` for local development.
 
-## 3. Créer la base et déployer les fonctions
+## Deploy the database and Edge Functions
 
-Depuis le dossier du projet :
+Run these commands from the repository.
 
-```powershell
+```sh
 npx supabase login
 npx supabase link --project-ref <project-ref>
 npx supabase db push
@@ -33,48 +31,39 @@ npx supabase functions deploy discord-connect
 npx supabase functions deploy check-wipes
 ```
 
-Dans **Supabase → Edge Functions → Secrets**, crée :
+In **Supabase → Edge Functions → Secrets**, add the following values.
 
-| Nom | Valeur |
-|---|---|
-| `DISCORD_CLIENT_ID` | Client ID de l'application Discord |
-| `DISCORD_CLIENT_SECRET` | Client Secret Discord privé |
-| `SITE_URL` | `https://la-dosette.github.io/RustRadar/` |
-| `CRON_SECRET` | Une chaîne aléatoire longue, par exemple 64 caractères hexadécimaux |
+| Name | Value |
+| --- | --- |
+| `DISCORD_CLIENT_ID` | Discord application client ID |
+| `DISCORD_CLIENT_SECRET` | Discord application client secret |
+| `SITE_URL` | URL of the deployed RustRadar site |
+| `CRON_SECRET` | A long random value, such as 64 hexadecimal characters |
 
-Supabase fournit automatiquement `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` aux Edge Functions.
+Supabase supplies `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to Edge Functions automatically.
 
-## 4. Activer le contrôle toutes les cinq minutes
+## Schedule wipe checks
 
-1. Ouvre [supabase/cron.sql](supabase/cron.sql).
-2. Remplace `https://YOUR_PROJECT.supabase.co` par le Project URL.
-3. Remplace `YOUR_CRON_SECRET` par exactement la même valeur que le secret Edge Function.
-4. Exécute le fichier dans **Supabase → SQL Editor**.
-5. Dans **Integrations → Cron**, vérifie que `rustradar-check-wipes` apparaît.
+1. Open [supabase/cron.sql](supabase/cron.sql).
+2. Replace `https://YOUR_PROJECT.supabase.co` with your project URL and `YOUR_CRON_SECRET` with the value configured for the Edge Functions.
+3. Run the SQL in **Supabase → SQL Editor**. In **Integrations → Cron**, check that `rustradar-check-wipes` is scheduled every five minutes.
 
-## 5. Configurer le site
+## Configure the site
 
-Pour travailler en local, copie `.env.example` vers `.env.local` :
+For local development, copy `.env.example` to `.env.local` and set the following values.
 
-```env
+```dotenv
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-Dans GitHub, ouvre **RustRadar → Settings → Secrets and variables → Actions → Variables**, puis crée les deux mêmes variables :
+For GitHub Pages, add the same values under **Settings → Secrets and variables → Actions → Variables**. The deployment workflow reads them at build time.
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
+## Verify the setup
 
-La Publishable key est conçue pour le navigateur. N'ajoute jamais la Service Role Key aux variables GitHub Pages.
+1. Start RustRadar and select **Connect Discord**.
+2. Sign in, add a favorite, and reload the page to check synchronization.
+3. In **Alerts → Connect Discord channel**, select a channel you administer and create a fresh-wipe rule for the last six hours with at least five players.
+4. Check for messages after the next scheduled run. The job sends up to five matches in a batch and deduplicates repeat deliveries for the same rule and wipe.
 
-## 6. Contrôle final
-
-1. Lance `npm run dev` et vérifie que **Connect Discord** apparaît.
-2. Connecte-toi : un favori local doit être copié dans le compte.
-3. Ajoute ou enlève un favori, recharge la page et vérifie qu'il reste synchronisé.
-4. Ouvre **Alerts → Connect Discord channel** et choisis un salon que tu administres.
-5. Crée une règle simple : Fresh wipes, fenêtre 6 h, au moins 5 joueurs.
-6. Attends au maximum cinq minutes. RustRadar peut envoyer jusqu'à cinq résultats lors du premier passage, puis ne renverra pas le même wipe pour cette règle.
-
-Si **Connect Discord** n'apparaît pas, les variables Vite manquent au moment de la compilation. Si la connexion revient avec `discord=error`, contrôle les deux redirections Discord et les secrets de la fonction. Si aucune alerte n'arrive, vérifie l'historique du job Cron et les logs de `check-wipes` dans Supabase.
+If **Connect Discord** is missing, check the Vite variables and rebuild. If the redirect returns `discord=error`, verify the two OAuth redirect URLs and the Edge Function secrets. For missing alerts, check the Cron history and `check-wipes` logs.
