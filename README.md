@@ -16,9 +16,9 @@ See when servers are due to wipe and whether the schedule comes from the server 
 
 ![RustRadar Upcoming page showing scheduled wipes, wipe types, and estimated player counts](docs/screenshots/upcoming-wipes.jpg)
 
-## Favorites and Discord
+## Favorites
 
-Save servers locally with the star button. On a deployment with Discord and Supabase configured, signing in synchronizes favorites across devices. You can also send wipe alerts to a Discord channel you administer. See the [Discord and Supabase setup guide](SETUP_SUPABASE_DISCORD.md).
+Select the star next to a server to save it in this browser. Open **Favorites** to find saved servers again.
 
 ## Run locally
 
